@@ -1,0 +1,551 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "717",
+        "sensor_ids": [
+          "POLOA_7_717_co2_1",
+          "POLOA_7_717_humidity_1",
+          "POLOA_7_717_temperature_1",
+          "POLOA_7_717_light_1",
+          "POLOA_7_717_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.19,
+              45.464
+            ],
+            [
+              9.190059999999999,
+              45.464
+            ],
+            [
+              9.190059999999999,
+              45.46404
+            ],
+            [
+              9.19,
+              45.46404
+            ],
+            [
+              9.19,
+              45.464
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "719",
+        "sensor_ids": [
+          "POLOA_7_719_co2_1",
+          "POLOA_7_719_humidity_1",
+          "POLOA_7_719_temperature_1",
+          "POLOA_7_719_light_1",
+          "POLOA_7_719_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.1901,
+              45.464
+            ],
+            [
+              9.190159999999999,
+              45.464
+            ],
+            [
+              9.190159999999999,
+              45.46404
+            ],
+            [
+              9.1901,
+              45.46404
+            ],
+            [
+              9.1901,
+              45.464
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "721",
+        "sensor_ids": [
+          "POLOA_7_721_co2_1",
+          "POLOA_7_721_humidity_1",
+          "POLOA_7_721_temperature_1",
+          "POLOA_7_721_light_1",
+          "POLOA_7_721_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.190199999999999,
+              45.464
+            ],
+            [
+              9.190259999999999,
+              45.464
+            ],
+            [
+              9.190259999999999,
+              45.46404
+            ],
+            [
+              9.190199999999999,
+              45.46404
+            ],
+            [
+              9.190199999999999,
+              45.464
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "722",
+        "sensor_ids": [
+          "POLOA_7_722_co2_1",
+          "POLOA_7_722_humidity_1",
+          "POLOA_7_722_temperature_1",
+          "POLOA_7_722_light_1",
+          "POLOA_7_722_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.190299999999999,
+              45.464
+            ],
+            [
+              9.190359999999998,
+              45.464
+            ],
+            [
+              9.190359999999998,
+              45.46404
+            ],
+            [
+              9.190299999999999,
+              45.46404
+            ],
+            [
+              9.190299999999999,
+              45.464
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "723",
+        "sensor_ids": [
+          "POLOA_7_723_co2_1",
+          "POLOA_7_723_humidity_1",
+          "POLOA_7_723_temperature_1",
+          "POLOA_7_723_light_1",
+          "POLOA_7_723_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.1904,
+              45.464
+            ],
+            [
+              9.19046,
+              45.464
+            ],
+            [
+              9.19046,
+              45.46404
+            ],
+            [
+              9.1904,
+              45.46404
+            ],
+            [
+              9.1904,
+              45.464
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "724",
+        "sensor_ids": [
+          "POLOA_7_724_co2_1",
+          "POLOA_7_724_humidity_1",
+          "POLOA_7_724_temperature_1",
+          "POLOA_7_724_light_1",
+          "POLOA_7_724_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.19,
+              45.4641
+            ],
+            [
+              9.190059999999999,
+              45.4641
+            ],
+            [
+              9.190059999999999,
+              45.46414
+            ],
+            [
+              9.19,
+              45.46414
+            ],
+            [
+              9.19,
+              45.4641
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "726",
+        "sensor_ids": [
+          "POLOA_7_726_co2_1",
+          "POLOA_7_726_humidity_1",
+          "POLOA_7_726_temperature_1",
+          "POLOA_7_726_light_1",
+          "POLOA_7_726_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.1901,
+              45.4641
+            ],
+            [
+              9.190159999999999,
+              45.4641
+            ],
+            [
+              9.190159999999999,
+              45.46414
+            ],
+            [
+              9.1901,
+              45.46414
+            ],
+            [
+              9.1901,
+              45.4641
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "734",
+        "sensor_ids": [
+          "POLOA_7_734_co2_1",
+          "POLOA_7_734_humidity_1",
+          "POLOA_7_734_temperature_1",
+          "POLOA_7_734_light_1",
+          "POLOA_7_734_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.190199999999999,
+              45.4641
+            ],
+            [
+              9.190259999999999,
+              45.4641
+            ],
+            [
+              9.190259999999999,
+              45.46414
+            ],
+            [
+              9.190199999999999,
+              45.46414
+            ],
+            [
+              9.190199999999999,
+              45.4641
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "746",
+        "sensor_ids": [
+          "POLOA_7_746_co2_1",
+          "POLOA_7_746_humidity_1",
+          "POLOA_7_746_temperature_1",
+          "POLOA_7_746_light_1",
+          "POLOA_7_746_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.190299999999999,
+              45.4641
+            ],
+            [
+              9.190359999999998,
+              45.4641
+            ],
+            [
+              9.190359999999998,
+              45.46414
+            ],
+            [
+              9.190299999999999,
+              45.46414
+            ],
+            [
+              9.190299999999999,
+              45.4641
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "748",
+        "sensor_ids": [
+          "POLOA_7_748_co2_1",
+          "POLOA_7_748_humidity_1",
+          "POLOA_7_748_temperature_1",
+          "POLOA_7_748_light_1",
+          "POLOA_7_748_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.1904,
+              45.4641
+            ],
+            [
+              9.19046,
+              45.4641
+            ],
+            [
+              9.19046,
+              45.46414
+            ],
+            [
+              9.1904,
+              45.46414
+            ],
+            [
+              9.1904,
+              45.4641
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "752",
+        "sensor_ids": [
+          "POLOA_7_752_co2_1",
+          "POLOA_7_752_humidity_1",
+          "POLOA_7_752_temperature_1",
+          "POLOA_7_752_light_1",
+          "POLOA_7_752_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.19,
+              45.4642
+            ],
+            [
+              9.190059999999999,
+              45.4642
+            ],
+            [
+              9.190059999999999,
+              45.46424
+            ],
+            [
+              9.19,
+              45.46424
+            ],
+            [
+              9.19,
+              45.4642
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "754",
+        "sensor_ids": [
+          "POLOA_7_754_co2_1",
+          "POLOA_7_754_humidity_1",
+          "POLOA_7_754_temperature_1",
+          "POLOA_7_754_light_1",
+          "POLOA_7_754_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.1901,
+              45.4642
+            ],
+            [
+              9.190159999999999,
+              45.4642
+            ],
+            [
+              9.190159999999999,
+              45.46424
+            ],
+            [
+              9.1901,
+              45.46424
+            ],
+            [
+              9.1901,
+              45.4642
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "building": "POLOA",
+        "floor": "7",
+        "room": "776",
+        "sensor_ids": [
+          "POLOA_7_776_co2_1",
+          "POLOA_7_776_humidity_1",
+          "POLOA_7_776_temperature_1",
+          "POLOA_7_776_light_1",
+          "POLOA_7_776_pir_1"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.190199999999999,
+              45.4642
+            ],
+            [
+              9.190259999999999,
+              45.4642
+            ],
+            [
+              9.190259999999999,
+              45.46424
+            ],
+            [
+              9.190199999999999,
+              45.46424
+            ],
+            [
+              9.190199999999999,
+              45.4642
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
