@@ -21,7 +21,36 @@ services:
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
     depends_on:
       - zookeeper
-      
+  connect:
+    image: confluentinc/cp-kafka-connect:7.5.0
+    container_name: kafka-connect
+    depends_on:
+      - kafka
+      - mqtt_broker
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_GROUP_ID: "connect-cluster"
+      CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+    volumes:
+      - ./kafka-connect-plugins:/usr/share/confluent-hub-components
+      - ./connectors:/connectors
+    command:
+      - /etc/confluent/docker/run
+
+
   mongo:
     image: mongo:6
     container_name: mongodb
@@ -56,3 +85,12 @@ services:
       - ./streamlit-app:/app
     depends_on:
       - mongo
+  
+  mqtt_broker:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt_broker
+    ports:
+      - "1883:1883" 
+    volumes:
+      - ./mosquitto/config:/mosquitto/config 
+      - ./mosquitto/data:/mosquitto/data
