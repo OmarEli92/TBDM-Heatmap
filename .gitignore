@@ -416,3 +416,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+mongo_data/
+
+mosquitto/data/mosquitto.db
+
+configuration.conf
