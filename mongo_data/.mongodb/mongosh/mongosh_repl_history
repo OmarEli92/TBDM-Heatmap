@@ -1,29 +1,7 @@
-db.posts.find()
-db.posts.insertOne({title: "primo insert", content:"blablabla che bello mongoDB", author: "Omar"})
-db.posts.find()
-db.posts.insertMany(postsData)
-];
-   }
-       createdAt: new Date()
-       author: "Jim Murphy",
-       content: "Explore advanced features of MongoDB",
-       title: "Advanced MongoDB Techniques",
-   {
-   },
-       createdAt: new Date()
-       author: "Arunn Thevapalan",
-       content: "Learn the basics of MongoDB",
-       title: "Getting Started with MongoDB",
-   {
-var postsData = [
-db.posts.find()
-db.posts
-db.post.insertOne({ title: "Primo insert", content: "bla bla bla che bello mongoDB", author: "Omar" })
-db.createCollection("posts")
-db.removeCollection("posts")
-db.removeCollection("blogs")
-db.createCollection("comments")
-db.createCollection("blogs")
-show dbs
-use prova
-show dbs
+exit
+db.iot_metrics.find().limit(5).pretty()
+show collections
+use building_iot
+db.iot_data.countDocuments({})
+show collections
+use heatmap_db

@@ -6,7 +6,7 @@ import configparser
 import paho.mqtt.client as mqtt
 
 config = configparser.ConfigParser()
-config.read("config.conf")
+config.read("configuration.conf")
 
 
 MQTT_BROKER = config.get("MQTT", "broker")
@@ -67,12 +67,13 @@ def publish_sensor_data(sensor_info):
                 "floor": sensor_info["floor"],
                 "room": sensor_info["room"],
                 "sensor_type": sensor_info["sensor_type"],
+                "sensor_id": sensor_info["key"],
                 "value": float(value)
             }
             topic = f"{TOPIC_PREFIX}{sensor_info['floor']}/{sensor_info['room']}/{sensor_info['sensor_type']}"
             client.publish(topic, json.dumps(payload), qos=MQTT_QOS)
             print(f"Published {sensor_info['key']} -> {payload}")
-            time.sleep(sensor_info["interval"])
+            #time.sleep(sensor_info["interval"])
 
 def main():
     sensors = generate_sensor_keys()

@@ -1,3 +1,5 @@
+
+
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -7,6 +9,15 @@ services:
     environment:
       - ZOOKEEPER_CLIENT_PORT=2181
       - ZOOKEEPER_TICK_TIME=2000
+    volumes:
+      - ./zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - iot-network
+    healthcheck:
+      test: echo stat | nc localhost 2181
+      interval: 10s
+      timeout: 5s
+      retries: 3
     
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -20,13 +31,43 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
       - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
     depends_on:
-      - zookeeper
-  connect:
+      zookeeper:
+        condition: service_healthy
+    networks:
+      - iot-network
+    healthcheck:
+      test: kafka-broker-api-versions --bootstrap-server localhost:9092
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-init
+    depends_on:
+      - kafka
+    networks:
+      - iot-network
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      "
+      echo '=== Aspetto che Kafka sia pronto ===';
+      sleep 10;
+      echo '=== Creazione topic iot_sensors ===';
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic iot_sensors --partitions 1 --replication-factor 1;
+      echo '=== Verifica topics creati ===';
+      kafka-topics --bootstrap-server kafka:9092 --list;
+      echo '=== Inizializzazione completata ===';
+      "
+      
+  kafka-connect:
     image: confluentinc/cp-kafka-connect:7.5.0
     container_name: kafka-connect
     depends_on:
-      - kafka
-      - mqtt_broker
+      kafka:
+        condition: service_healthy
+      mqtt_broker:
+        condition: service_started
     ports:
       - "8083:8083"
     environment:
@@ -44,13 +85,25 @@ services:
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx512M"
     volumes:
       - ./kafka-connect-plugins:/usr/share/confluent-hub-components
       - ./connectors:/connectors
-    command:
-      - /etc/confluent/docker/run
-
-
+    networks:
+      - iot-network
+    
+  init-connectors:
+    image: curlimages/curl:latest
+    container_name: init-connectors
+    depends_on:
+      - kafka-connect
+    volumes:
+      - ./init-connectors.sh:/init-connectors.sh
+      - ./connectors:/connectors
+    entrypoint: ["sh", "/init-connectors.sh"]
+    networks:
+      - iot-network
+      
   mongo:
     image: mongo:6
     container_name: mongodb
@@ -59,6 +112,13 @@ services:
       - "27017:27017"
     volumes:
       - ./mongo_data:/data/db
+    networks:
+      - iot-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 3
       
   spark:
     image: apache/spark:3.5.0
@@ -69,12 +129,40 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+      - "4040:4040"
     volumes:
       - ./spark-app:/app
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
     depends_on:
-      - kafka
-      - mongo
+      kafka:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    networks:
+      - iot-network
+      
+  spark-job:
+    build: ./spark-app
+    container_name: spark-job
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./spark-app:/app
+    networks:
+      - iot-network
+    restart: on-failure
+    entrypoint: >
+      sh -c "
+      echo '=== Verifica topic Kafka ===';
+      kafka-topics --bootstrap-server kafka:9092 --list;
+      echo '=== Avvio Spark Job ===';
+      /opt/spark/bin/spark-submit
+      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
+      /app/spark_main.py
+      "
       
   streamlit:
     build: ./streamlit-app
@@ -84,13 +172,22 @@ services:
     volumes:
       - ./streamlit-app:/app
     depends_on:
-      - mongo
-  
+      mongo:
+        condition: service_healthy
+    networks:
+      - iot-network
+      
   mqtt_broker:
     image: eclipse-mosquitto:latest
     container_name: mqtt_broker
     ports:
-      - "1883:1883" 
+      - "1883:1883"
     volumes:
-      - ./mosquitto/config:/mosquitto/config 
+      - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
+    networks:
+      - iot-network
+
+networks:
+  iot-network:
+    driver: bridge

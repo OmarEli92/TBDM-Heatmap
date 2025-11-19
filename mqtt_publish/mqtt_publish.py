@@ -4,7 +4,8 @@ import csv
 import json
 import configparser
 import paho.mqtt.client as mqtt
-
+"""Lo scopo di mqtt_publish è quello di simulare i dati provenienti da dei sensori IoT sfruttando il protocollo
+MQTT avendo come broker Mosquitto"""
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))  
 PROJECT_ROOT = os.path.abspath(os.path.join(PROJECT_ROOT, ".."))  
@@ -25,7 +26,7 @@ client.connect(MQTT_BROKER, MQTT_PORT, 60)
 client.loop_start()  
 
 def generate_sensor_keys():
-    """Il metodo serve per generar tutte le key dei sensori e i percorsi dei CSV per simulare il flusso di dati
+    """Il metodo serve per generare tutte le key dei sensori e i percorsi dei CSV per simulare il flusso di dati
     generabili da una vera topologia di dispositivi IoT sfruttando il dataset già presente."""
     sensor_keys = []
     for floor in os.listdir(BASE_PATH):
@@ -40,7 +41,8 @@ def generate_sensor_keys():
                 files = [f for f in os.listdir(room_path) if f.startswith(sensor_type)]
                 for idx, f in enumerate(files, start=DEFAULT_SENSOR_ID):
                     #idx mi serve per incrementare l'id del sensore nel caso ci fossero 
-                    #piu sensori dello stesso tipo nella stessa stanza(nel dataset ciò non accade)
+                    #piu sensori dello stesso tipo nella stessa stanza
+                    # (nel nostro caso nel dataset ciò non accade  in quanto c'è un solo tipo di sensore per stanza)
                     key = f"{BUILDING_ID}_{floor}_{room}_{sensor_type}_{idx}"
                     sensor_keys.append({
                         "key": key,
@@ -67,12 +69,13 @@ def publish_sensor_data(sensor_info):
                 "floor": sensor_info["floor"],
                 "room": sensor_info["room"],
                 "sensor_type": sensor_info["sensor_type"],
+                "sensor_id": sensor_info["key"],
                 "value": float(value)
             }
             topic = f"{TOPIC_PREFIX}{sensor_info['floor']}/{sensor_info['room']}/{sensor_info['sensor_type']}"
             client.publish(topic, json.dumps(payload), qos=MQTT_QOS)
             print(f"Published {sensor_info['key']} -> {payload}")
-            time.sleep(sensor_info["interval"])
+            #time.sleep(sensor_info["interval"])
 
 def main():
     sensors = generate_sensor_keys()

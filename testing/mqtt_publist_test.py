@@ -68,7 +68,7 @@ def publish_sensor_data(sensor):
             }
             topic = f"{TOPIC_PREFIX}{sensor['floor']}/{sensor['room']}/{sensor['sensor_type']}"
             client.publish(topic, json.dumps(payload))
-            print(f"📡 Pubblicato su {topic}: {payload}")
+            print(f" Pubblicato su {topic}: {payload}")
             time.sleep(sensor["interval"])
 
 
