@@ -1,0 +1,16 @@
+{
+  "name": "influxdb-sink-connector",
+  "config": {
+    "connector.class": "io.confluent.connect.influxdb.InfluxDBSinkConnector",
+    "tasks.max": "1",
+    "topics": "iot_sensors",
+    "influxdb.url": "http://influxdb:8086",
+    "influxdb.token": "my-influxdb-token",
+    "influxdb.organization": "POLOA_org",
+    "influxdb.bucket": "temporal_datalake",
+    "influxdb.consistency": "one",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}

@@ -59,7 +59,26 @@ services:
       kafka-topics --bootstrap-server kafka:9092 --list;
       echo '=== Inizializzazione completata ===';
       "
-      
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      # Credenziali e configurazione di InfluxDB 2.x
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=poloa_admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password
+      - DOCKER_INFLUXDB_INIT_ORG=POLOA_org
+      - DOCKER_INFLUXDB_INIT_BUCKET=temporal_datalake # Il bucket che riceverà i dati
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-influxdb-token # Necessario per il connettore Sink
+    volumes:
+      - ./influxdb_data:/var/lib/influxdb2
+    networks:
+      - iot-network
+
+
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.5.0
     container_name: kafka-connect
@@ -67,6 +86,8 @@ services:
       kafka:
         condition: service_healthy
       mqtt_broker:
+        condition: service_started
+      influxdb:
         condition: service_started
     ports:
       - "8083:8083"
