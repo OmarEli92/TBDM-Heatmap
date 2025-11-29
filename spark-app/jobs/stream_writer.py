@@ -16,13 +16,13 @@ class MongoWriter:
         self.database = database
         self.collection = collection
 
-    def write(self, dataframe):
+    def write(self, dataframe, output_mode="append"):
         return (
             dataframe.writeStream
             .format("mongodb")
             .option("database", self.database)
             .option("collection", self.collection)
-            .option("checkpointLocation", "/tmp/mongo-checkpoint")
-            .outputMode("append")
+            .option("checkpointLocation", f"/tmp/mongo-checkpoint-{self.database}-{self.collection}") 
+            .outputMode(output_mode) 
             .start()
         )
