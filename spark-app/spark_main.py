@@ -9,7 +9,8 @@ from jobs.stream_writer import MongoWriter
 from jobs.aggregator import TumblingWindowAggregator
 from pyspark.sql.functions import col, from_unixtime, concat_ws
 
-"""The entry point for the jobs of spark streaming"""
+"""The entry point for the job of spark streaming, it only contains the aggregation of data from a temporal window
+for testing purpose the temporal window is 1 minute"""
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONF_PATH = os.path.join(BASE_DIR, "configuration", "spark.conf")
@@ -36,7 +37,7 @@ reader = KafkaStreamReader(KAFKA_BOOTSTRAP, KAFKA_TOPIC, KAFKA_OFFSET)
 parser = StreamParser(iot_schema)
 #writer = ConsoleWriter()
 aggregator = TumblingWindowAggregator()
-writer = MongoWriter("building_iot", "iot_metrics")
+#writer = MongoWriter("building_iot", "iot_metrics")
 aggr_writer = MongoWriter("building_iot","aggr_iot_metrics") # writer for the aggregated data
 dataframe_kafka = reader.read_stream(spark)
 dataframe_parsed = parser.parse(dataframe_kafka)
@@ -48,10 +49,10 @@ dataframe_with_ts = dataframe_parsed.withColumn("event_time", col("ts"))
 WATERMARK_DURATION = "10 seconds"
 dataframe_watermarked = dataframe_with_ts.withWatermark("event_time", WATERMARK_DURATION)
 dataframe_aggr = aggregator.aggregate(dataframe_watermarked)
-query = writer.write(dataframe_parsed)
+#query = writer.write(dataframe_parsed)
 query_agg = aggr_writer.write(dataframe_aggr, output_mode="append")
 
-query.awaitTermination()
+#query.awaitTermination()
 query_agg.awaitTermination()
 
 console_query.awaitTermination()
