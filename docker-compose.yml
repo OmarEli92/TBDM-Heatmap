@@ -198,10 +198,24 @@ services:
     networks:
       - iot-network
     restart: "no"
+    labels:
+      # JDaily job: at 02:00
+      ofelia.job-local.daily-report.schedule: "@daily 02:00"
+      ofelia.job-local.daily-report.command: >
+        /opt/spark/bin/spark-submit 
+        --packages org.mongodb.spark:mongo-spark-connector_2.12:10.2.1
+        /app/daily_report.py
+
+      # Weekly job: Sunday at midnight
+      ofelia.job-local.weekly-check.schedule: "@weekly"
+      ofelia.job-local.weekly-check.command: >
+        /opt/spark/bin/spark-submit 
+        --packages org.mongodb.spark:mongo-spark-connector_2.12:10.2.1
+        /app/daily_report.py
     # Mantains the container on container acceso but in idle state
     entrypoint: [ "tail", "-f", "/dev/null" ]
 
-  #it wakes up the spark-batch container to run scheduled jobs
+  #wakes up the spark-batch container to run scheduled jobs
   scheduler:
     image: mcuadros/ofelia:latest
     container_name: scheduler

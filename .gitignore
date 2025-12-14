@@ -423,3 +423,14 @@ mongo_data/
 mosquitto/data/mosquitto.db
 
 configuration.conf
+
+influxdb_data/
+
+zookeeper_data/
+
+
+# --- Configurazione IDE e OS ---
+.DS_Store
+.idea/
+.vscode/
+*.conf
