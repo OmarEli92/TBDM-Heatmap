@@ -184,7 +184,36 @@ services:
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
       /app/spark_main.py
       "
-      
+
+  spark-batch:
+    build: ./spark-app
+    container_name: spark-batch
+    depends_on:
+      influxdb:
+        condition: service_started
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./spark-app:/app
+    networks:
+      - iot-network
+    restart: "no"
+    # Mantains the container on container acceso but in idle state
+    entrypoint: [ "tail", "-f", "/dev/null" ]
+
+  #it wakes up the spark-batch container to run scheduled jobs
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: scheduler
+    depends_on:
+      - spark-batch
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - iot-network
+
+
   streamlit:
     build: ./streamlit-app
     container_name: streamlit
