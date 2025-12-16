@@ -419,7 +419,8 @@ FodyWeavers.xsd
 
 
 mongo_data/
-
+influxdb_data/
+mosquitto/data/
 mosquitto/data/mosquitto.db
 
 configuration.conf
