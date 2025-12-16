@@ -40,7 +40,7 @@ class TumblingWindowAggregator:
 
         dataframe_agg = dataframe_agg.withColumn(
             "_id",
-            concat_ws("|", 
+            concat_ws("_", 
                 col("building"), 
                 col("floor"), 
                 col("room"), 

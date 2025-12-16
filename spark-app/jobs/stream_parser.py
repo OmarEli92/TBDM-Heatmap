@@ -13,16 +13,16 @@ class StreamParser:
             .withColumn("ts", col("timestamp").cast("timestamp"))
             
         )
-        # DEBUG: Stampa lo schema
+        """
+        PER IL DEBUG NON PIU NECESSARIO
         print("=" * 80)
         print("SCHEMA PRIMA DELLA MODIFICA _id:")
         dataframe_parsed.printSchema()
         
-        # Ora aggiungi _id
         dataframe_with_id = dataframe_parsed.withColumn("_id", col("sensor_id"))
         
-        # DEBUG: Stampa lo schema DOPO
         print("=" * 80)
         print("SCHEMA DOPO AGGIUNTA _id:")
         dataframe_with_id.printSchema()
+        """
         return dataframe_parsed
