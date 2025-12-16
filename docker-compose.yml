@@ -10,7 +10,7 @@ services:
       - ZOOKEEPER_CLIENT_PORT=2181
       - ZOOKEEPER_TICK_TIME=2000
     volumes:
-      - ./zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_data_vol:/var/lib/zookeeper/data
     networks:
       - iot-network
     healthcheck:
@@ -74,7 +74,7 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=temporal_datalake # Il bucket che riceverà i dati
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-influxdb-token # Necessario per il connettore Sink
     volumes:
-      - ./influxdb_data:/var/lib/influxdb2
+      - influxdb_data_vol:/var/lib/influxdb2
     networks:
       - iot-network
 
@@ -132,7 +132,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./mongo_data:/data/db
+      - mongo_data_vol:/data/db
     networks:
       - iot-network
     healthcheck:
@@ -184,7 +184,50 @@ services:
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
       /app/spark_main.py
       "
-      
+
+  spark-batch:
+    build: ./spark-app
+    container_name: spark-batch
+    depends_on:
+      influxdb:
+        condition: service_started
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./spark-app:/app
+    networks:
+      - iot-network
+    restart: "no"
+    labels:
+      # JDaily job: at 02:00
+      ofelia.job-local.daily-report.schedule: "@daily 02:00"
+      ofelia.job-local.daily-report.command: >
+        /opt/spark/bin/spark-submit 
+        --packages org.mongodb.spark:mongo-spark-connector_2.12:10.2.1
+        /app/daily_report.py
+
+      # Weekly job: Sunday at midnight
+      ofelia.job-local.weekly-check.schedule: "@weekly"
+      ofelia.job-local.weekly-check.command: >
+        /opt/spark/bin/spark-submit 
+        --packages org.mongodb.spark:mongo-spark-connector_2.12:10.2.1
+        /app/daily_report.py
+    # Mantains the container on container acceso but in idle state
+    entrypoint: [ "tail", "-f", "/dev/null" ]
+
+  #wakes up the spark-batch container to run scheduled jobs
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: scheduler
+    depends_on:
+      - spark-batch
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - iot-network
+
+
   streamlit:
     build: ./streamlit-app
     container_name: streamlit
@@ -205,10 +248,16 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto/config:/mosquitto/config
-      - ./mosquitto/data:/mosquitto/data
+      - mosquitto_data_vol:/mosquitto/data
     networks:
       - iot-network
 
 networks:
   iot-network:
     driver: bridge
+
+volumes:
+  zookeeper_data_vol:
+  influxdb_data_vol:
+  mongo_data_vol:
+  mosquitto_data_vol:

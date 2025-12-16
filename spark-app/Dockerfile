@@ -1,3 +1,10 @@
+FROM bitnami/spark:3.5.0
+
+USER root
+
+# Installa le librerie Python necessarie
+RUN pip install influxdb-client pandas
+
 FROM apache/spark:3.5.0
 USER root
 
