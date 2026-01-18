@@ -251,14 +251,13 @@ services:
       - mosquitto_data_vol:/mosquitto/data
     networks:
       - iot-network
-      -
 
   thingsboard:
     image: thingsboard/tb-postgres:latest
     container_name: thingsboard
     ports:
       - "9090:9090" # Web UI
-      - "1883:1883" # MQTT
+      - "1884:1884" # MQTT
     environment:
       - TB_QUEUE_TYPE=kafka
       - TB_KAFKA_SERVERS=kafka:9092
@@ -266,21 +265,21 @@ services:
       - iot-network
 
 
-  etl-job-in: # ETL Job (2)
-    build: ./etl-bridge-in
-    depends_on:
-      - thingsboard
-      - kafka
-    networks:
-      - iot-network
+  #etl-job-in: # ETL Job (2)
+   # build: ./etl-bridge-in
+    #depends_on:
+     # - thingsboard
+      #- kafka
+    #networks:
+      #- iot-network
 
-  etl-job-out: # ETL Job (1)
-    build: ./etl-bridge-out
-    depends_on:
-      - mongo
-      - thingsboard
-    networks:
-      - iot-network
+  #etl-job-out: # ETL Job (1)
+   # build: ./etl-bridge-out
+    #depends_on:
+     # - mongo
+      #- thingsboard
+    #networks:
+     # - iot-network
 networks:
   iot-network:
     driver: bridge
