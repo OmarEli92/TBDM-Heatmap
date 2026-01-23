@@ -7,16 +7,18 @@ import paho.mqtt.client as mqtt
 """Lo scopo di mqtt_publish è quello di simulare i dati provenienti da dei sensori IoT sfruttando il protocollo
 MQTT avendo come broker Mosquitto"""
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))  
-PROJECT_ROOT = os.path.abspath(os.path.join(PROJECT_ROOT, ".."))  
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+CONF_PATH = os.path.join(PROJECT_ROOT, "configuration.conf")
 config = configparser.ConfigParser()
-config.read("configuration.conf")
+config.read(CONF_PATH)
 MQTT_BROKER = config.get("MQTT", "broker")
 MQTT_PORT = config.getint("MQTT", "port")
 TOPIC_PREFIX = config.get("MQTT", "topic_prefix")
 MQTT_QOS = 1
 BUILDING_ID = config.get("BUILDING", "id")
-BASE_PATH = config.get("DATASET", "dir")
+DATA_DIR_RELATIVE= config.get("DATASET", "dir")
+BASE_PATH = os.path.abspath(os.path.join(PROJECT_ROOT, DATA_DIR_RELATIVE))
 DEFAULT_SENSOR_ID = config.getint("DATASET", "sensor_id")
 SENSOR_INTERVALS = {k: config.getint("SENSOR_INTERVALS", k) for k in config["SENSOR_INTERVALS"]}
 SENSOR_TYPES = list(SENSOR_INTERVALS.keys())

@@ -265,21 +265,42 @@ services:
       - iot-network
 
 
-  #etl-job-in: # ETL Job (2)
-   # build: ./etl-bridge-in
-    #depends_on:
-     # - thingsboard
-      #- kafka
-    #networks:
-      #- iot-network
+  etl-bridge-in:
+    build: ./etl-bridge-in
+    container_name: etl-bridge-in
+    depends_on:
+      mqtt_broker:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    environment:
+      - MQTT_BROKER=mqtt_broker
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=/POLOA/#
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_TOPIC=iot_sensors
+    networks:
+      - iot-network
+    restart: on-failure
 
-  #etl-job-out: # ETL Job (1)
-   # build: ./etl-bridge-out
-    #depends_on:
-     # - mongo
-      #- thingsboard
-    #networks:
-     # - iot-network
+  etl-bridge-out:
+    build: ./etl-bridge-out
+    container_name: etl-bridge-out
+    depends_on:
+      mongo:
+        condition: service_healthy
+      thingsboard:
+        condition: service_started
+    volumes:
+      - ./etl-bridge-out:/app
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB=building_iot
+      - MONGO_COLLECTION_AGGR=aggr_iot_metrics
+      - TB_URL=http://thingsboard:9090
+    networks:
+      - iot-network
+    restart: on-failure
 networks:
   iot-network:
     driver: bridge

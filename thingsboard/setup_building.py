@@ -2,13 +2,14 @@
 import os
 import requests
 import json
+from dotenv import load_dotenv
 
 # --- CONFIGURATION ---
 BUILDING_PATH = "../data/raw_dataset"  # Your folder with Floors/Rooms
-TB_URL = "http://localhost:9090"  # ThingsBoard web address
+TB_URL = os.getenv("TB_URL", "http://localhost:9090")  # ThingsBoard web address
 # Default tenant administrator credentials
-USERNAME = "tenant@thingsboard.org"
-PASSWORD = "tenant"
+USERNAME = os.getenv("TB_USERNAME", "tenant@thingsboard.org")
+PASSWORD = os.getenv("TB_PASSWORD", "tenant")
 
 
 def get_auth_token():
@@ -65,7 +66,7 @@ def initialize_building():
             }
 
     # Save everything to a JSON file
-    with open("room_mapping.json", "w") as f:
+    with open("room_mapping_2.json", "w") as f:
         json.dump(final_map, f, indent=4)
 
     print("\n[DONE] File `room_mapping.json` generated successfully!")
