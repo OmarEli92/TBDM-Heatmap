@@ -1,12 +1,12 @@
 from pyspark.sql.functions import (
-    window, col, count, avg, min, max, stddev, variance, expr, concat_ws
+    window, col, count, avg, min, max, stddev, variance, expr, concat_ws, lit
 )
 """For the metrics we  calculate the min, max, avg , the standard deviation, variaance , the median and the percentile
 from which the data fall in, like 90%, 95 % and 99% """
 class TumblingWindowAggregator:
     def __init__(self, window_duration="1 minutes"):
         self.window_duration = window_duration
-
+        self.duration_label = f"{window_duration.split(' ')[0]}m"
     def aggregate(self, dataframe):
         dataframe_agg = (
             dataframe
@@ -41,10 +41,11 @@ class TumblingWindowAggregator:
         dataframe_agg = dataframe_agg.withColumn(
             "_id",
             concat_ws("_", 
-                col("building"), 
-                col("floor"), 
+                #col("building"), 
+                #col("floor"), 
                 col("room"), 
-                col("sensor_type"), 
+                col("sensor_type"),
+                lit(self.duration_label),
                 col("window_start")
             )
         )
