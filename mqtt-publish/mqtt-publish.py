@@ -3,92 +3,97 @@ import json
 import configparser
 import paho.mqtt.client as mqtt
 from key_generator import generate_sensor_keys
-import threading
 import time
+import os
 
 config = configparser.ConfigParser()
 config.read("configuration.conf")
 
 MQTT_BROKER = config.get("MQTT", "broker")
 MQTT_PORT = config.getint("MQTT", "port")
-TOPIC_PREFIX = config.get("MQTT", "topic_prefix")
 MQTT_QOS = 1
 BUILDING_ID = config.get("BUILDING", "id")
+TOPIC_PREFIX = config.get("MQTT", "topic_prefix") 
 
-# Connessione MQTT
-client = mqtt.Client()
+#Connessione MQTT 
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.connect(MQTT_BROKER, MQTT_PORT, 60)
 client.loop_start()
 
 running = True
 
-def publish_sensor_data(sensor_info):
-    """Simula un sensore real-time che legge il CSV e pubblica continuamente"""
-    global running
-    try:
-        data_rows = []
-        with open(sensor_info["file"], newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            for row in reader:
-                if len(row) >= 2:
-                    data_rows.append((row[0], row[1]))
-        
-        if not data_rows:
-            print(f"Nessun dato in {sensor_info['key']}")
-            return
-        print(f"[{sensor_info['key']}] Caricati {len(data_rows)} dati dal CSV")
-        row_index = 0
-        while running:
-            timestamp, value = data_rows[row_index]
-            try:
-                payload = {
-                    "timestamp": int(timestamp),
-                    "building": BUILDING_ID,
-                    "floor": sensor_info["floor"],
-                    "room": sensor_info["room"],
-                    "sensor_type": sensor_info["sensor_type"],
-                    "sensor_id": sensor_info["key"],
-                    "value": float(value)
-                }
-                topic = f"{TOPIC_PREFIX}{sensor_info['floor']}/{sensor_info['room']}/{sensor_info['sensor_type']}"
-                client.publish(topic, json.dumps(payload), qos=MQTT_QOS)
-                print(f"[{sensor_info['key']}] Pubblicati: {payload}")
-            except ValueError as e:
-                print(f"[{sensor_info['key']}] Errore conversione: {e}")
-            row_index = (row_index + 1) % len(data_rows)
-    
-    except FileNotFoundError:
-        print(f"[{sensor_info['key']}] File non trovato: {sensor_info['file']}")
-    except Exception as e:
-        print(f"[{sensor_info['key']}] Errore: {e}")
-
 def main():
     global running
-    sensors = generate_sensor_keys()
-    print(f"Trovati {len(sensors)} sensori\n")
+    try:
+        sensors = generate_sensor_keys()
+    except Exception as e:
+        print(f"Errore caricamento sensori: {e}")
+        return
+    print(f"Trovati {len(sensors)} sensori nel file contenente il mapping \n")
     if not sensors:
-        print("Nessun sensore trovato!")
+        print("Nessun sensore trovato! Esegui il Mapper prima di eseguire la simulazione.")
         return
     
-    threads = []
-    
-    print("Avvio dei sensori...\n")
-    for sensor in sensors:
-        thread = threading.Thread(
-            target=publish_sensor_data, 
-            args=(sensor,), 
-            daemon=False,
-            name=f"Sensor-{sensor['key']}"
-        )
-        thread.start()
-        threads.append(thread)
-    
-    print(f" {len(threads)} sensori avviati\n")
+    print("Avvio simulazione...")
+
+    active_sensors = []
+    for sensor_info in sensors:
+        try:
+            f = open(sensor_info["file"], newline='')
+            reader = csv.reader(f)
+            active_sensors.append({
+                "info": sensor_info,
+                "file": f,
+                "reader": reader
+            })
+        except FileNotFoundError:
+             print(f"[{sensor_info['key']}] File non trovato: {sensor_info['file']}")
+        except Exception as e:
+             print(f"Errore thread {sensor_info.get('key')}: {e}")
+
     try:
-        while running:
-            time.sleep(1)
+        # Simula un sensore real-time che legge il CSV e pubblica continuamente fino a quando non terminano i dati
+        while running and active_sensors:
+            sensors_to_remove = []
+            
+            for sensor_obj in active_sensors:
+                try:
+                    row = next(sensor_obj["reader"])
+                    if len(row) >= 2:
+                        timestamp, value = row[0], row[1]
+                        try:
+                            payload = {
+                                "timestamp": int(timestamp),
+                                "building": BUILDING_ID,
+                                "floor": str(sensor_obj["info"]["floor"]),
+                                "room": str(sensor_obj["info"]["room"]),
+                                "sensor_type": sensor_obj["info"]["sensor_type"],
+                                "sensor_id": sensor_obj["info"]["key"], 
+                                "value": float(value)
+                            }
+                            topic = f"{TOPIC_PREFIX}{sensor_obj['info']['floor']}/{sensor_obj['info']['room']}/{sensor_obj['info']['sensor_type']}"
+                            client.publish(topic, json.dumps(payload), qos=MQTT_QOS)
+                            print(f"[{sensor_obj['info']['key']}] Pubblicati: {payload}")
+                        except ValueError as e:
+                            print(f"[{sensor_obj['info']['key']}] Errore conversione: {e}")
+                
+                except StopIteration:
+                    sensor_obj["file"].close()
+                    sensors_to_remove.append(sensor_obj)
+            
+            for s in sensors_to_remove:
+                active_sensors.remove(s)
+            
+            time.sleep(0.01)
+
+        print("\nTutti i sensori hanno finito di inviare i dati.")
+
     except KeyboardInterrupt:
         pass
+    finally:
+        for s in active_sensors:
+            if not s["file"].closed:
+                s["file"].close()
 
 if __name__ == "__main__":
     try:
@@ -97,8 +102,8 @@ if __name__ == "__main__":
         pass
     finally:
         running = False
-        print("\n\nPausa...")
-        time.sleep(1)  
+        print("\nStop")
+        time.sleep(1)
         client.loop_stop()
         client.disconnect()
-        print("Programma terminato.")
+        print("Chiuso.")

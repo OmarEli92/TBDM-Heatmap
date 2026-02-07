@@ -24,19 +24,22 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:29092
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
     depends_on:
       zookeeper:
         condition: service_healthy
     networks:
       - iot-network
     healthcheck:
-      test: kafka-broker-api-versions --bootstrap-server localhost:9092
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -228,19 +231,7 @@ services:
       - iot-network
 
 
-  streamlit:
-    build: ./streamlit-app
-    container_name: streamlit
-    ports:
-      - "8501:8501"
-    volumes:
-      - ./streamlit-app:/app
-    depends_on:
-      mongo:
-        condition: service_healthy
-    networks:
-      - iot-network
-      
+  
   mqtt_broker:
     image: eclipse-mosquitto:latest
     container_name: mqtt_broker
@@ -252,6 +243,28 @@ services:
     networks:
       - iot-network
 
+#For the integration of Thingsboard
+  
+    
+  thingsboard:
+    image: thingsboard/tb-postgres:latest
+    container_name: thingsboard
+    restart: always
+    ports:
+      - "9191:9090"
+      - "1884:1883"
+    environment:
+      - TB_QUEUE_TYPE=in-memory
+      - JAVA_OPTS=-Xms512M -Xmx2G
+    #entrypoint: ["sh", "-c", "/usr/bin/start-tb.sh --install && /usr/bin/start-tb.sh"]
+    volumes:
+      - tb_data:/data 
+    networks:
+      - iot-network
+
+
+
+
 networks:
   iot-network:
     driver: bridge
@@ -261,3 +274,6 @@ volumes:
   influxdb_data_vol:
   mongo_data_vol:
   mosquitto_data_vol:
+  tb_data:
+
+

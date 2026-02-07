@@ -1,6 +1,10 @@
 from pyspark.sql.functions import (
     window, col, count, avg, min, max, stddev, variance, expr, concat_ws, lit
 )
+import configparser
+config = configparser.ConfigParser()
+config.read('schema.conf')
+
 """For the metrics we  calculate the min, max, avg , the standard deviation, variaance , the median and the percentile
 from which the data fall in, like 90%, 95 % and 99% """
 class TumblingWindowAggregator:
@@ -11,6 +15,7 @@ class TumblingWindowAggregator:
         dataframe_agg = (
             dataframe
             .groupBy(
+                "sensor_id",
                 "building",
                 "floor",
                 "room",
@@ -42,11 +47,9 @@ class TumblingWindowAggregator:
             "_id",
             concat_ws("_", 
                 #col("building"), 
-                #col("floor"), 
-                col("room"), 
-                col("sensor_type"),
+                col("sensor_id"),
+                lit("heatmap"),                
                 lit(self.duration_label),
-                col("window_start")
             )
         )
         return dataframe_agg
