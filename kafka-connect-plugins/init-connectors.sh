@@ -17,10 +17,13 @@ curl -X POST -H "Content-Type: application/json" \
      --data @${CONNECTOR_FILE} \
      http://${KAFKA_CONNECT_HOST}:${KAFKA_CONNECT_PORT}/connectors
 
+echo "Kafka Connector registration complete."
+
+
 echo "InfluxDB Sink Connector registration."
 curl -X POST -H "Content-Type: application/json" \
      --data @${INFLUXDB_CONNECTOR_FILE} \
      http://${KAFKA_CONNECT_HOST}:${KAFKA_CONNECT_PORT}/connectors
 
-echo "Connector registration complete."
+echo "InfluxDB Connector registration complete."
 
