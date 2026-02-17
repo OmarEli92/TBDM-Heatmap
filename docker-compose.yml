@@ -1,5 +1,4 @@
 
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -243,9 +242,7 @@ services:
     networks:
       - iot-network
 
-#For the integration of Thingsboard
-  
-    
+
   thingsboard:
     image: thingsboard/tb-postgres:latest
     container_name: thingsboard
@@ -256,14 +253,65 @@ services:
     environment:
       - TB_QUEUE_TYPE=in-memory
       - JAVA_OPTS=-Xms512M -Xmx2G
-    #entrypoint: ["sh", "-c", "/usr/bin/start-tb.sh --install && /usr/bin/start-tb.sh"]
     volumes:
-      - tb_data:/data 
+      - tb_data:/data
+    networks:
+      - iot-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/login || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s  
+
+  
+  etl-extractor:
+    build: ./etl_jobs
+    container_name: etl-extractor
+    restart: always
+    depends_on:
+      thingsboard:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      - TB_URL=http://thingsboard:9090
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_TOPIC=iot_sensors
+      - TB_USER=tenant@thingsboard.org
+      - TB_PASS=tenant
+    volumes:
+      - ./etl_jobs:/app 
+      #- ./configuration.conf:/app/configuration.conf:ro
+      - etl_state:/app/state  
+    command: ["python", "-u", "extract_from_thingsboard.py"]        
     networks:
       - iot-network
 
-
-
+  
+  etl-loader:
+    build: ./etl_jobs
+    container_name: etl-loader
+    restart: always
+    depends_on:
+      thingsboard:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    environment:
+      - TB_URL=http://thingsboard:9090
+      - MONGO_URI=mongodb://mongo:27017/
+      - MONGO_DB=building_iot
+      - MONGO_COLLECTION=aggr_iot_metrics
+      - TB_USER=tenant@thingsboard.org
+      - TB_PASS=tenant
+    volumes:
+      - ./etl_jobs:/app
+      #- ./configuration.conf:/app/configuration.conf:ro
+      - etl_state:/app/state  
+    command: ["python", "-u", "insert_to_thingsboard.py"]
+    networks:
+      - iot-network
 
 networks:
   iot-network:
@@ -275,5 +323,4 @@ volumes:
   mongo_data_vol:
   mosquitto_data_vol:
   tb_data:
-
-
+  etl_state:  

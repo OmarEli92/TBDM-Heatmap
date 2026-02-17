@@ -5,10 +5,11 @@ import configparser
 config = configparser.ConfigParser()
 config.read('schema.conf')
 
-"""For the metrics we  calculate the min, max, avg , the standard deviation, variaance , the median and the percentile
-from which the data fall in, like 90%, 95 % and 99% """
+
 class TumblingWindowAggregator:
-    def __init__(self, window_duration="1 minutes"):
+    """For the metrics we  calculate the min, max, avg , the standard deviation, variaance ,
+    the median and the percentile from which the data fall in, like 90%, 95 % and 99% """
+    def __init__(self, window_duration="15 minutes"):
         self.window_duration = window_duration
         self.duration_label = f"{window_duration.split(' ')[0]}m"
     def aggregate(self, dataframe):
@@ -50,6 +51,7 @@ class TumblingWindowAggregator:
                 col("sensor_id"),
                 lit("heatmap"),                
                 lit(self.duration_label),
+                col("window_start").cast("long")
             )
         )
         return dataframe_agg
