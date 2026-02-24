@@ -230,7 +230,20 @@ services:
       - iot-network
 
 
-  
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    depends_on:
+      kafka:
+        condition: service_healthy
+      influxdb:
+        condition: service_started
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - iot-network
+    restart: always
+
   mqtt_broker:
     image: eclipse-mosquitto:latest
     container_name: mqtt_broker
@@ -282,7 +295,6 @@ services:
       - TB_PASS=tenant
     volumes:
       - ./etl_jobs:/app 
-      #- ./configuration.conf:/app/configuration.conf:ro
       - etl_state:/app/state  
     command: ["python", "-u", "extract_from_thingsboard.py"]        
     networks:
@@ -307,7 +319,6 @@ services:
       - TB_PASS=tenant
     volumes:
       - ./etl_jobs:/app
-      #- ./configuration.conf:/app/configuration.conf:ro
       - etl_state:/app/state  
     command: ["python", "-u", "insert_to_thingsboard.py"]
     networks:
