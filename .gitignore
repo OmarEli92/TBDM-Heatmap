@@ -423,7 +423,6 @@ influxdb_data/
 mosquitto/data/
 mosquitto/data/mosquitto.db
 
-configuration.conf
 
 influxdb_data/
 
