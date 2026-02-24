@@ -36,7 +36,7 @@ spark.sparkContext.setLogLevel("WARN")
 reader = KafkaStreamReader(KAFKA_BOOTSTRAP, KAFKA_TOPIC, KAFKA_OFFSET)
 parser = StreamParser(iot_schema)
 #writer = ConsoleWriter()
-aggregator = TumblingWindowAggregator()
+aggregator = TumblingWindowAggregator(window_duration=WINDOW_SIZE)
 #writer = MongoWriter("building_iot", "iot_metrics")
 aggr_writer = MongoWriter("building_iot","aggr_iot_metrics") # writer for the aggregated data
 dataframe_kafka = reader.read_stream(spark)

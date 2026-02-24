@@ -1,39 +1,49 @@
+import pandas as pd
 import os
-import time
 import configparser
 
-config = configparser.ConfigParser()
-config.read("configuration.conf")
-BASE_PATH = config.get("DATASET", "dir")
-SENSOR_INTERVALS = {k: config.getint("SENSOR_INTERVALS", k) for k in config["SENSOR_INTERVALS"]}
-SENSOR_TYPES = list(SENSOR_INTERVALS.keys())
-DEFAULT_SENSOR_ID = config.getint("DATASET", "sensor_id")
-BUILDING_ID = config.get("BUILDING", "id")
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(CURRENT_DIR)
+CONF_FILE = os.path.join(PROJECT_ROOT, "configuration.conf")
+MAPPING_FILE = os.path.join(PROJECT_ROOT, "data", "sensor_mapping_master.csv")
+
+config = configparser.ConfigParser()
+if not os.path.exists(CONF_FILE):
+    print(f"Il file dic onfigurazione non è presente!: {CONF_FILE}")
+    CONF_FILE = "configuration.conf" 
+config.read(CONF_FILE)
+SENSOR_INTERVALS = {k: config.getint("SENSOR_INTERVALS", k) for k in config["SENSOR_INTERVALS"]}
 
 def generate_sensor_keys():
-    """Il metodo serve per generar tutte le key dei sensori e i percorsi dei CSV"""
+    """
+    This method is used to map correctly the ids mapped and the directories.
+    """    
+    if not os.path.exists(MAPPING_FILE):
+        raise FileNotFoundError("Il file di mapping non esiste")
+
+    print(f"Caricamento sensori da: {MAPPING_FILE} ")    
+    try:
+        df = pd.read_csv(MAPPING_FILE)
+    except Exception as e:
+        raise ValueError(f"Errore nella lettura del CSV: {e}")
     sensor_keys = []
-    for floor in os.listdir(BASE_PATH):
-        floor_path = os.path.join(BASE_PATH, floor)
-        if not os.path.isdir(floor_path):
-            continue
-        for room in os.listdir(floor_path):
-            room_path = os.path.join(floor_path, room)
-            if not os.path.isdir(room_path):
-                continue
-            for sensor_type in SENSOR_TYPES:
-                files = [f for f in os.listdir(room_path) if f.startswith(sensor_type)]
-                for idx, f in enumerate(files, start=DEFAULT_SENSOR_ID):
-                    #idx mi serve per incrementare l'id del sensore nel caso ci fossero 
-                    #piu sensori dello stesso tipo nella stessa stanza(nel dataset ciò non accade)
-                    key = f"{BUILDING_ID}_{floor}_{room}_{sensor_type}_{idx}"
-                    sensor_keys.append({
-                        "key": key,
-                        "floor": floor,
-                        "room": room,
-                        "sensor_type": sensor_type,
-                        "file": os.path.join(room_path, f),
-                        "interval": SENSOR_INTERVALS[sensor_type]
-                    })
+    for _, row in df.iterrows():
+        s_type = row['sensor_type']
+        sensor_keys.append({
+            "key": str(row['unique_id']),  
+            "building": row['building'],
+            "floor": str(row['floor']), 
+            "room": str(row['room']),
+            "sensor_type": s_type,            
+            "file": row['file_path'],             
+            "interval": SENSOR_INTERVALS.get(s_type, 5) 
+        })
+        
     return sensor_keys
+
+
+if __name__ == "__main__":
+    keys = generate_sensor_keys()
+    print(f"Generati {len(keys)} sensori.")
+    print(keys[0])

@@ -1,0 +1,6 @@
+requests==2.31.0
+kafka-python==2.0.2
+pymongo==4.6.1
+paho-mqtt==1.6.1
+configparser==6.0.0
+lz4==4.4.5

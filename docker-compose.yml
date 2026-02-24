@@ -1,5 +1,4 @@
 
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -24,19 +23,22 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:29092
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
     depends_on:
       zookeeper:
         condition: service_healthy
     networks:
       - iot-network
     healthcheck:
-      test: kafka-broker-api-versions --bootstrap-server localhost:9092
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -228,19 +230,7 @@ services:
       - iot-network
 
 
-  streamlit:
-    build: ./streamlit-app
-    container_name: streamlit
-    ports:
-      - "8501:8501"
-    volumes:
-      - ./streamlit-app:/app
-    depends_on:
-      mongo:
-        condition: service_healthy
-    networks:
-      - iot-network
-      
+  
   mqtt_broker:
     image: eclipse-mosquitto:latest
     container_name: mqtt_broker
@@ -252,55 +242,77 @@ services:
     networks:
       - iot-network
 
+
   thingsboard:
     image: thingsboard/tb-postgres:latest
     container_name: thingsboard
+    restart: always
     ports:
-      - "9090:9090" # Web UI
-      - "1884:1884" # MQTT
+      - "9191:9090"
+      - "1884:1883"
     environment:
-      - TB_QUEUE_TYPE=kafka
-      - TB_KAFKA_SERVERS=kafka:9092
+      - TB_QUEUE_TYPE=in-memory
+      - JAVA_OPTS=-Xms512M -Xmx2G
+    volumes:
+      - tb_data:/data
     networks:
       - iot-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/login || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s  
 
-
-  etl-bridge-in:
-    build: ./etl-bridge-in
-    container_name: etl-bridge-in
+  
+  etl-extractor:
+    build: ./etl_jobs
+    container_name: etl-extractor
+    restart: always
     depends_on:
-      mqtt_broker:
-        condition: service_started
+      thingsboard:
+        condition: service_healthy
       kafka:
         condition: service_healthy
     environment:
-      - MQTT_BROKER=mqtt_broker
-      - MQTT_PORT=1883
-      - MQTT_TOPIC=/POLOA/#
+      - TB_URL=http://thingsboard:9090
       - KAFKA_BROKER=kafka:9092
       - KAFKA_TOPIC=iot_sensors
+      - TB_USER=tenant@thingsboard.org
+      - TB_PASS=tenant
+    volumes:
+      - ./etl_jobs:/app 
+      #- ./configuration.conf:/app/configuration.conf:ro
+      - etl_state:/app/state  
+    command: ["python", "-u", "extract_from_thingsboard.py"]        
     networks:
       - iot-network
-    restart: on-failure
 
-  etl-bridge-out:
-    build: ./etl-bridge-out
-    container_name: etl-bridge-out
+  
+  etl-loader:
+    build: ./etl_jobs
+    container_name: etl-loader
+    restart: always
     depends_on:
+      thingsboard:
+        condition: service_healthy
       mongo:
         condition: service_healthy
-      thingsboard:
-        condition: service_started
-    volumes:
-      - ./etl-bridge-out:/app
     environment:
-      - MONGO_URI=mongodb://mongo:27017
-      - MONGO_DB=building_iot
-      - MONGO_COLLECTION_AGGR=aggr_iot_metrics
       - TB_URL=http://thingsboard:9090
+      - MONGO_URI=mongodb://mongo:27017/
+      - MONGO_DB=building_iot
+      - MONGO_COLLECTION=aggr_iot_metrics
+      - TB_USER=tenant@thingsboard.org
+      - TB_PASS=tenant
+    volumes:
+      - ./etl_jobs:/app
+      #- ./configuration.conf:/app/configuration.conf:ro
+      - etl_state:/app/state  
+    command: ["python", "-u", "insert_to_thingsboard.py"]
     networks:
       - iot-network
-    restart: on-failure
+
 networks:
   iot-network:
     driver: bridge
@@ -310,3 +322,5 @@ volumes:
   influxdb_data_vol:
   mongo_data_vol:
   mosquitto_data_vol:
+  tb_data:
+  etl_state:  
