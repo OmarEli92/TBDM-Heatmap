@@ -1,12 +1,12 @@
-FROM bitnami/spark:3.5.0
-
-USER root
-
-# Installa le librerie Python necessarie
-RUN pip install influxdb-client pandas
 
 FROM apache/spark:3.5.0
 USER root
+
+RUN pip3 install influxdb-client pandas
+
+# 2. Obbliga Spark a usare python3 in tutti i suoi processi
+ENV PYSPARK_PYTHON=python3
+ENV PYSPARK_DRIVER_PYTHON=python3
 
 RUN curl -L -o /opt/spark/jars/mongo-spark-connector_2.12-10.3.0.jar \
     https://repo1.maven.org/maven2/org/mongodb/spark/mongo-spark-connector_2.12/10.3.0/mongo-spark-connector_2.12-10.3.0.jar

@@ -3,7 +3,6 @@
 KAFKA_CONNECT_HOST="kafka-connect"
 KAFKA_CONNECT_PORT="8083"
 CONNECTOR_FILE="/connectors/mqtt-connector.json"
-INFLUXDB_CONNECTOR_FILE="/connectors/influxdb-sink-connector.json"
 
 echo "Waiting for Kafka Connect"
 
@@ -18,12 +17,3 @@ curl -X POST -H "Content-Type: application/json" \
      http://${KAFKA_CONNECT_HOST}:${KAFKA_CONNECT_PORT}/connectors
 
 echo "Kafka Connector registration complete."
-
-
-echo "InfluxDB Sink Connector registration."
-curl -X POST -H "Content-Type: application/json" \
-     --data @${INFLUXDB_CONNECTOR_FILE} \
-     http://${KAFKA_CONNECT_HOST}:${KAFKA_CONNECT_PORT}/connectors
-
-echo "InfluxDB Connector registration complete."
-

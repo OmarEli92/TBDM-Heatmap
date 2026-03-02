@@ -68,13 +68,12 @@ services:
     ports:
       - "8086:8086"
     environment:
-      # Credenziali e configurazione di InfluxDB 2.x
       - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=poloa_admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=password
-      - DOCKER_INFLUXDB_INIT_ORG=POLOA_org
-      - DOCKER_INFLUXDB_INIT_BUCKET=temporal_datalake # Il bucket che riceverà i dati
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-influxdb-token # Necessario per il connettore Sink
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET}
+      #- DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_ADMIN_TOKEN} # Necessario per il connettore Sink
     volumes:
       - influxdb_data_vol:/var/lib/influxdb2
     networks:
@@ -197,25 +196,31 @@ services:
         condition: service_healthy
     volumes:
       - ./spark-app:/app
+    environment:
+      - INFLUX_ADMIN_TOKEN=${INFLUX_ADMIN_TOKEN}
+      - INFLUX_ORG=${INFLUX_ORG}
+      - INFLUX_BUCKET=${INFLUX_BUCKET}
     networks:
       - iot-network
     restart: "no"
     labels:
+      ofelia.job-run.daily-report.container: "spark-batch"
       # JDaily job: at 02:00
       ofelia.job-local.daily-report.schedule: "@daily 02:00"
+       # Indica quale container avviare
       ofelia.job-local.daily-report.command: >
         /opt/spark/bin/spark-submit 
         --packages org.mongodb.spark:mongo-spark-connector_2.12:10.2.1
-        /app/daily_report.py
+        /app/batch/daily_report.py
 
       # Weekly job: Sunday at midnight
       ofelia.job-local.weekly-check.schedule: "@weekly"
       ofelia.job-local.weekly-check.command: >
-        /opt/spark/bin/spark-submit 
+        /opt/spark/bin/spark-submit
         --packages org.mongodb.spark:mongo-spark-connector_2.12:10.2.1
-        /app/daily_report.py
+        /app/batch/weekly_health.py
     # Mantains the container on container acceso but in idle state
-    entrypoint: [ "tail", "-f", "/dev/null" ]
+    #entrypoint: [ "tail", "-f", "/dev/null" ]
 
   #wakes up the spark-batch container to run scheduled jobs
   scheduler:
@@ -240,6 +245,8 @@ services:
         condition: service_started
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      - INFLUX_ADMIN_TOKEN=${INFLUX_ADMIN_TOKEN}
     networks:
       - iot-network
     restart: always
@@ -257,25 +264,25 @@ services:
 
 
   thingsboard:
-    image: thingsboard/tb-postgres:latest
-    container_name: thingsboard
-    restart: always
-    ports:
-      - "9191:9090"
-      - "1884:1883"
-    environment:
-      - TB_QUEUE_TYPE=in-memory
-      - JAVA_OPTS=-Xms512M -Xmx2G
-    volumes:
-      - tb_data:/data
-    networks:
-      - iot-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/login || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s  
+   image: thingsboard/tb-postgres:latest
+   container_name: thingsboard
+   restart: always
+   ports:
+     - "9191:9090"
+     - "1884:1883"
+   environment:
+     - TB_QUEUE_TYPE=in-memory
+     - JAVA_OPTS=-Xms512M -Xmx2G
+   volumes:
+     - tb_data:/data
+   networks:
+     - iot-network
+   healthcheck:
+     test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/login || exit 1"]
+     interval: 30s
+     timeout: 10s
+     retries: 10
+     start_period: 120s
 
   
   etl-extractor:
@@ -294,13 +301,12 @@ services:
       - TB_USER=tenant@thingsboard.org
       - TB_PASS=tenant
     volumes:
-      - ./etl_jobs:/app 
-      - etl_state:/app/state  
-    command: ["python", "-u", "extract_from_thingsboard.py"]        
+      - ./etl_jobs:/app
+      - etl_state:/app/state
+    command: ["python", "-u", "extract_from_thingsboard.py"]
     networks:
       - iot-network
 
-  
   etl-loader:
     build: ./etl_jobs
     container_name: etl-loader
@@ -319,7 +325,7 @@ services:
       - TB_PASS=tenant
     volumes:
       - ./etl_jobs:/app
-      - etl_state:/app/state  
+      - etl_state:/app/state
     command: ["python", "-u", "insert_to_thingsboard.py"]
     networks:
       - iot-network
