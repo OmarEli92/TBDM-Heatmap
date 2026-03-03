@@ -13,7 +13,7 @@ The system supports two ingestion strategies via Docker profiles:
 2.  **Rule-Chain Profile**: ThingsBoard uses a custom Rule Chain to push data directly to a **FastAPI** endpoint. This endpoint transforms the data and forwards it to Kafka.
 
 ### The Pipeline:
-* **Simulation**: Data is read from a dataset and sent to ThingsBoard.
+* **Simulation**: [Data](https://www.kaggle.com/datasets/ranakrc/smart-building-system) is read from a dataset and sent to ThingsBoard.
 * **Ingestion**: Data is captured by the chosen profile (ETL Polling or Rule-Chain/FastAPI) and converted into the Kafka payload.
 * **Persistence (Raw)**: Raw data is persisted into **InfluxDB**.
 * **Stream Processing**: **Apache Spark** listens to the `iot_sensors` Kafka topic, performing windowed aggregations (**Avg, Min, Max, StdDev, Variance**, etc.) per device.
@@ -74,7 +74,7 @@ Once the stack is running, you can access the various services using the followi
 
 ### Data Payload
 The internal data format used across the pipeline (Kafka/Spark) is as follows:
-{
+`{
     "timestamp": "timestamp_value",
     "building": "building_name",
     "floor": "floor_level",
@@ -82,7 +82,7 @@ The internal data format used across the pipeline (Kafka/Spark) is as follows:
     "sensor_type": "type",
     "sensor_id": 123,
     "value": 25.5
-}
+}`
 
 ### Technology Stack
 * **ThingsBoard**: IoT Platform & Visualization.
