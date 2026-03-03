@@ -39,7 +39,7 @@ def main():
     # 2. Pivot: Transform rows "temperature" and "co2" into columns
     flux_query = f"""
             from(bucket: "{INFLUX_BUCKET}")
-              |> range(start: 0) 
+              |> range(start: -24h) 
               |> filter(fn: (r) => r["_measurement"] == "iot_telemetry")
               |> filter(fn: (r) => r["sensor_type"] == "temperature" or r["sensor_type"] == "co2")
               |> pivot(rowKey:["_time"], columnKey: ["sensor_type"], valueColumn: "_value")

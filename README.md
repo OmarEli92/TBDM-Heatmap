@@ -25,6 +25,12 @@ The system supports two ingestion strategies via Docker profiles:
 ## Installation & Setup
 
 ### 1. Start Docker Containers
+First, start the influxdb container:
+
+> docker compose up -d influxdb
+
+and then execute this command in the terminal `docker exec -it influxdb influx auth list`. Copy the token in the environment variable "INFLUX_ADMIN_TOKEN"
+
 Choose **one** of the following profiles to start the stack:
 
 **For Polling-based extraction:**
@@ -42,13 +48,12 @@ Choose **one** of the following profiles to start the stack:
 ### 2. Initialize Data
 After the containers are up and running, execute these scripts in order to set up the environment:
 
-1.  **Generate and copy InfluxDB Token**: execute this command in the terminal `docker exec -it influxdb influx auth list`. Then copy the token in the environment variable "INFLUX_ADMIN_TOKEN"
-2.  **Generate Mapping**: Create the building/sensor map from the dataset.
+1.  **Generate Mapping**: Create the building/sensor map from the dataset.
     > python mapping_geojson_initializer.py
-3.  **Provision Devices**: Map the devices from the generated file to ThingsBoard.
+2.  **Provision Devices**: Map the devices from the generated file to ThingsBoard.
     > python map_devices_to_thingsboard.py
-4.  **Load Initial Data**: Project the first hour of sensor data to ThingsBoard.
-    > python initialize_data_on_thingsboard.py
+3. **Load Initial Data**: Project the first hour of sensor data to ThingsBoard.
+    >    python initialize_data_on_thingsboard.py
 
 *Note: To avoid overwhelming the memory  only the first hour of data for each device is sent during initialization.*
 

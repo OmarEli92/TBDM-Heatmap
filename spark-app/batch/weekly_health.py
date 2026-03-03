@@ -38,7 +38,7 @@ def main():
     # 2. Filter: Correct table name and filter only on temperature
     flux_query = f"""
         from(bucket: "{INFLUX_BUCKET}")
-          |> range(start: 0)
+          |> range(start: -7d)
           |> filter(fn: (r) => r["_measurement"] == "iot_telemetry")
           |> filter(fn: (r) => r["sensor_type"] == "temperature")
           |> pivot(rowKey:["_time"], columnKey: ["sensor_type"], valueColumn: "_value")
