@@ -10,7 +10,7 @@ from jobs.aggregator import TumblingWindowAggregator
 from pyspark.sql.functions import col, from_unixtime, concat_ws
 
 """The entry point for the job of spark streaming, it only contains the aggregation of data from a temporal window
-for testing purpose the temporal window is 1 minute"""
+for testing purpose the temporal window is 10 minutes"""
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONF_PATH = os.path.join(BASE_DIR, "configuration", "spark.conf")
@@ -35,24 +35,11 @@ spark = (
 spark.sparkContext.setLogLevel("WARN")
 reader = KafkaStreamReader(KAFKA_BOOTSTRAP, KAFKA_TOPIC, KAFKA_OFFSET)
 parser = StreamParser(iot_schema)
-#writer = ConsoleWriter()
-aggregator = TumblingWindowAggregator(window_duration=WINDOW_SIZE)
-#writer = MongoWriter("building_iot", "iot_metrics")
-aggr_writer = MongoWriter("building_iot","aggr_iot_metrics") # writer for the aggregated data
+aggregator = TumblingWindowAggregator(window_duration=WINDOW_SIZE, watermark="10 seconds")
+aggr_writer = MongoWriter("building_iot", "aggr_iot_metrics")
 dataframe_kafka = reader.read_stream(spark)
 dataframe_parsed = parser.parse(dataframe_kafka)
-console_query = ConsoleWriter().write(dataframe_parsed)
-
-#Ho aggiunto una colonna timestamp che mi serve per il watermark che altrimenti mi crea problemi nell'aggregation
 dataframe_with_ts = dataframe_parsed.withColumn("event_time", col("ts"))
-
-WATERMARK_DURATION = "10 seconds"
-dataframe_watermarked = dataframe_with_ts.withWatermark("event_time", WATERMARK_DURATION)
-dataframe_aggr = aggregator.aggregate(dataframe_watermarked)
-#query = writer.write(dataframe_parsed)
+dataframe_aggr = aggregator.aggregate(dataframe_with_ts)
 query_agg = aggr_writer.write(dataframe_aggr, output_mode="append")
-
-#query.awaitTermination()
 query_agg.awaitTermination()
-
-console_query.awaitTermination()

@@ -9,12 +9,14 @@ config.read('schema.conf')
 class TumblingWindowAggregator:
     """For the metrics we  calculate the min, max, avg , the standard deviation, variaance ,
     the median and the percentile from which the data fall in, like 90%, 95 % and 99% """
-    def __init__(self, window_duration="15 minutes"):
+    def __init__(self, window_duration="10 minutes", watermark="10 seconds"):
         self.window_duration = window_duration
         self.duration_label = f"{window_duration.split(' ')[0]}m"
+        self.watermark = watermark
     def aggregate(self, dataframe):
         dataframe_agg = (
             dataframe
+            .withWatermark("event_time", self.watermark)
             .groupBy(
                 "sensor_id",
                 "building",

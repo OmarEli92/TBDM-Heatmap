@@ -306,6 +306,7 @@ services:
     command: ["python", "-u", "extract_from_thingsboard.py"]
     networks:
       - iot-network
+    profiles: ["polling"]
 
   etl-loader:
     build: ./etl_jobs
@@ -329,6 +330,20 @@ services:
     command: ["python", "-u", "insert_to_thingsboard.py"]
     networks:
       - iot-network
+
+  kafka-http-producer:
+    build: ./kafka-http-producer
+    container_name: kafka-http-producer
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_TOPIC=iot_sensors
+    networks:
+      - iot-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+    profiles: ["rulechain"]
+
 
 networks:
   iot-network:
