@@ -1,11 +1,19 @@
 # TBDM-Heatmap
-**Project for the exam of Technologies for Big Data Management**
+**Project for the exam of Technologies for Big Data Management, held by professor Massimo Callisto De Donato - University of Camerino, Italy.**
 
 This project implements a complete IoT data processing pipeline. It simulates sensor data ingestion into **ThingsBoard**, processes telemetry through a Big Data stack (**Kafka, Spark, InfluxDB, MongoDB**), and closes the loop by sending aggregated analytics back to the dashboard.
 
 ---
 
 ## Architecture & Data Flow
+
+![architecture_diagram.png](images/architecture_diagram.png)
+
+The architecture implements a circular data lifecycle designed to bridge the gap between raw IoT telemetry and actionable Big Data insights. Unlike traditional linear pipelines, this system treats ThingsBoard as a central "IoT Control Plane," serving as both the primary ingress point and the final destination for processed intelligence.
+Key architectural pillars include:
+1. **Decoupled Ingestion**: A flexible ingress layer that adapts to different networking constraints through interchangeable push/pull strategies.
+2. **Dual-Path Analytics**: A specialized infrastructure that separates long-term cold storage (Datalake) from sub-second real-time processing (Spark Streaming).
+3. **Operational Feedback Loop**: A closed-loop mechanism that re-injects analytical results into the original monitoring interface, enabling data-driven decision-making directly on the dashboard.
 
 The system supports two ingestion strategies via Docker profiles:
 
