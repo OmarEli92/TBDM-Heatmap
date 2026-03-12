@@ -80,7 +80,7 @@ For the daily comfort report, execute the following command:
 ```bash
 docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
   --master spark://spark-master:7077 \
-  /app/batch_analysis.py
+  /app/batch/dialy_report.py
 ```
 
 For the weekly sensor health check, use:
